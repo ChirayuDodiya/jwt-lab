@@ -135,20 +135,30 @@
             <button type="submit">Login</button>
         </form>
 
+<<<<<<< HEAD
         <div class="info-box" id="credsBox" style="display: none;">
             <strong>Lab Credentials (from .env):</strong><br>
             Username: <code id="demoUser">...</code><br>
             Password: <code id="demoPass">...</code>
+=======
+        <div class="info-box">
+            <strong>Lab Credentials:</strong><br>
+            Username: <code>chirayu</code><br>
+            Password: <code>chirayu123</code>
+>>>>>>> eb2aa1a73d0a937a559764f7cd2d99ba1491b0f5
         </div>
     </div>
 
     <script>
+<<<<<<< HEAD
         fetch('/api/credentials').then(r => r.json()).then(data => {
             document.getElementById('demoUser').textContent = data.username;
             document.getElementById('demoPass').textContent = data.password;
             document.getElementById('credsBox').style.display = 'block';
         }).catch(console.error);
 
+=======
+>>>>>>> eb2aa1a73d0a937a559764f7cd2d99ba1491b0f5
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('username').value;
