@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 6: Dashboard - JWT kid Path Traversal</title>
+    <meta name="description" content="Lab 6 dashboard for JWT kid header path traversal vulnerability.">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000000;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #111111;
+            border: 1px solid #0f3460;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .header h2 {
+            font-size: 18px;
+            color: #fff;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-badge {
+            background: #1a1a1a;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-danger  { background: #e94560; color: white; }
+        .btn-danger:hover  { background: #c73a52; }
+        .btn-primary { background: #0f3460; color: white; }
+        .btn-primary:hover { background: #1a4a8a; }
+        .btn-success { background: #2ecc71; color: white; }
+        .btn-success:hover { background: #27ae60; }
+
+        .card {
+            background: #111111;
+            border: 1px solid #0f3460;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .card h3 {
+            color: #e94560;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .step {
+            background: #0a0a0a;
+            border-left: 3px solid #e94560;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: #e94560;
+            color: white;
+            width: 24px;
+            height: 24px;
+            text-align: center;
+            line-height: 24px;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        code {
+            background: #0f3460;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #e94560;
+            font-size: 13px;
+        }
+
+        pre {
+            background: #0d1117;
+            border: 1px solid #0f3460;
+            border-radius: 4px;
+            padding: 15px;
+            overflow-x: auto;
+            margin: 10px 0;
+            font-size: 13px;
+            color: #c9d1d9;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .endpoint-box {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .endpoint-card {
+            flex: 1;
+            min-width: 250px;
+            background: #0a0a0a;
+            border: 1px solid #0f3460;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .endpoint-card h4 { margin-bottom: 10px; }
+        .endpoint-card.vulnerable { border-color: #e94560; }
+        .endpoint-card.secure     { border-color: #2ecc71; }
+
+        .token-display {
+            background: #0d1117;
+            border: 1px solid #0f3460;
+            border-radius: 4px;
+            padding: 10px;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 10px 0;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        .note-box {
+            background: #0a1a0a;
+            border: 1px solid #2ecc71;
+            border-radius: 4px;
+            padding: 12px 16px;
+            margin: 12px 0;
+            font-size: 13px;
+            color: #aaa;
+        }
+
+        .note-box strong {
+            color: #2ecc71;
+        }
+
+        .warning-box {
+            background: #1a1a0a;
+            border: 1px solid #f39c12;
+            border-radius: 4px;
+            padding: 12px 16px;
+            margin: 12px 0;
+            font-size: 13px;
+            color: #aaa;
+        }
+
+        .warning-box strong {
+            color: #f39c12;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h2>Lab 6: JWT kid Path Traversal</h2>
+        <div class="user-info">
+            <span class="user-badge" id="userBadge">Loading...</span>
+            <button class="btn btn-danger" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <!-- Token Display -->
+    <div class="card">
+        <h3>Your Current JWT Token</h3>
+        <div class="token-display" id="tokenDisplay">Loading...</div>
+        <p style="font-size: 13px; color: #888; margin-top: 5px;">
+            This HS256-signed token contains a <code>kid</code> header parameter.
+            The server uses <code>kid</code> to locate the signing key on the filesystem.
+        </p>
+    </div>
+
+    <!-- How the server resolves keys -->
+    <div class="card">
+        <h3>🔑 How the Server Resolves Keys</h3>
+        <p style="font-size:13px; color:#aaa; margin-bottom:12px;">
+            The server reads the signing key from the filesystem using the <code>kid</code> parameter:
+        </p>
+        <pre>// Server code (VULNERABLE):
+const keyPath = path.join(KEYS_DIR, kid);
+const secret  = fs.readFileSync(keyPath, 'utf8');
+jwt.verify(token, secret, { algorithms: ['HS256'] });</pre>
+        <div class="warning-box">
+            <strong>⚠ Vulnerability:</strong> No sanitization is applied to <code>kid</code>.
+            Path traversal sequences like <code>../</code> are accepted as-is, allowing you to
+            read any file on the server — including an empty file whose contents you know.
+        </div>
+    </div>
+
+    <!-- Attack Instructions -->
+    <div class="card">
+        <h3>Attack Instructions — How to Bypass via kid Path Traversal</h3>
+        <p style="margin-bottom: 15px; color: #aaa;">
+            The server builds a file path from <code>kid</code> without sanitization.
+            Point it to an empty file so the signing secret is an empty string, then sign the JWT with
+            a null byte (<code>AA==</code> in Base64).
+        </p>
+
+        <div class="step">
+            <span class="step-number">1</span>
+            <strong>Login with provided credentials</strong><br>
+            Use <code>wiener</code> / <code>peter</code> to login. You'll receive a JWT with
+            <code>kid: "secret.key"</code>.
+        </div>
+
+        <div class="step">
+            <span class="step-number">2</span>
+            <strong>Generate a symmetric key in Burp Suite</strong><br>
+            Go to <em>JWT Editor Keys</em> tab → click <em>New Symmetric Key</em> → click <em>Generate</em>.
+            Replace the value of the <code>k</code> property with <code>AA==</code>
+            (Base64-encoded null byte). Click OK.
+        </div>
+
+        <div class="step">
+            <span class="step-number">3</span>
+            <strong>Intercept the request in Burp Suite</strong><br>
+            Navigate to the Vulnerable Admin page, intercept the <code>GET /api/vulnerable-admin</code>
+            request, and send it to Repeater. Switch to the <em>JSON Web Token</em> tab.
+        </div>
+
+        <div class="step">
+            <span class="step-number">4</span>
+            <strong>Modify the JWT header — path traversal in kid</strong><br>
+            Change <code>kid</code> to a path traversal pointing to an empty file:
+            <pre>// On Linux (PortSwigger style):
+"kid": "../../../../../../../dev/null"
+
+// In this lab (cross-platform, the lab includes an empty dev/null file):
+"kid": "../dev/null"</pre>
+        </div>
+
+        <div class="step">
+            <span class="step-number">5</span>
+            <strong>Change the sub claim to admin</strong><br>
+            In the JWT payload, set <code>"sub": "admin"</code>.
+        </div>
+
+        <div class="step">
+            <span class="step-number">6</span>
+            <strong>Sign with the null-byte symmetric key</strong><br>
+            Click <em>Sign</em>, select the symmetric key you created (with <code>k = AA==</code>),
+            choose <em>Don't modify header</em>, then click OK.
+        </div>
+
+        <div class="step">
+            <span class="step-number">7</span>
+            <strong>Access the vulnerable admin panel</strong><br>
+            Forward the forged token. The server reads the empty file, gets an empty secret,
+            and your null-byte-signed token matches. Access <code>/api/vulnerable-admin</code>
+            (or click the button below) to solve the lab.
+        </div>
+
+        <div class="note-box">
+            <strong>📝 Note:</strong> This lab includes an empty file at <code>dev/null</code>
+            (relative to the lab6 directory) for Windows compatibility. Use <code>kid: "../dev/null"</code>
+            to traverse from the <code>keys/</code> directory to this empty file.
+        </div>
+    </div>
+
+    <!-- Endpoints -->
+    <div class="card">
+        <h3>Test Endpoints</h3>
+        <div class="endpoint-box">
+            <div class="endpoint-card vulnerable">
+                <h4 style="color: #e94560;">Vulnerable Admin</h4>
+                <p style="font-size: 13px; color: #aaa; margin-bottom: 15px;">
+                    Uses <code>kid</code> directly in file path — no sanitization
+                </p>
+                <a href="/vulnerable-admin.html" class="btn btn-danger">Access Vulnerable Admin</a>
+            </div>
+            <div class="endpoint-card secure">
+                <h4 style="color: #2ecc71;">Secure Admin</h4>
+                <p style="font-size: 13px; color: #aaa; margin-bottom: 15px;">
+                    Uses <code>path.basename()</code> to strip traversal sequences
+                </p>
+                <a href="/secure-admin.html" class="btn btn-success">Access Secure Admin</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadUser() {
+            try {
+                const res  = await fetch('/api/me');
+                const data = await res.json();
+                if (data.user) {
+                    document.getElementById('userBadge').textContent =
+                        `Logged in as: ${data.user.sub} (${data.user.role})`;
+                }
+            } catch (e) {
+                window.location.href = '/';
+            }
+        }
+
+        function showToken() {
+            const cookies = document.cookie.split(';');
+            for (let c of cookies) {
+                const [name, value] = c.trim().split('=');
+                if (name === 'token') {
+                    document.getElementById('tokenDisplay').textContent = value;
+                    return;
+                }
+            }
+            document.getElementById('tokenDisplay').textContent = 'No token found';
+        }
+
+        async function logout() {
+            await fetch('/logout', { method: 'POST' });
+            document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            window.location.href = '/';
+        }
+
+        loadUser();
+        showToken();
+    </script>
+</body>
+
+</html>

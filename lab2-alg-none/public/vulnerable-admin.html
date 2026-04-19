@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 2: Vulnerable Admin Panel</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000000;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #111111;
+            border: 1px solid #e94560;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .header h2 { font-size: 18px; color: #e94560; }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .btn-back { background: #0f3460; color: white; }
+        .btn-back:hover { background: #1a4a8a; }
+        .card {
+            background: #111111;
+            border: 1px solid #0f3460;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        .success-card { border-color: #2ecc71; background: #0a1a0a; }
+        .error-card { border-color: #e94560; background: #1a0a0a; }
+        .card h3 { margin-bottom: 15px; }
+        .response-box {
+            background: #0d1117;
+            border: 1px solid #0f3460;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .prevention-list {
+            list-style: none;
+            padding: 0;
+        }
+        .prevention-list li {
+            background: #0a0a0a;
+            border-left: 3px solid #2ecc71;
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            border-radius: 0 4px 4px 0;
+        }
+        .loading { text-align: center; padding: 40px; color: #888; }
+        #result { display: none; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>Vulnerable Admin Panel — alg:none Accepted</h2>
+        <a href="/dashboard.html" class="btn btn-back">Back to Dashboard</a>
+    </div>
+
+    <div class="loading" id="loading">Loading... Checking your token...</div>
+
+    <div id="result"></div>
+
+    <script>
+        async function checkAccess() {
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+
+            try {
+                const res = await fetch('/api/vulnerable-admin');
+                const data = await res.json();
+
+                loading.style.display = 'none';
+                result.style.display = 'block';
+
+                if (data.success) {
+                    result.innerHTML = `
+                        <div class="card success-card">
+                            <h3 style="color: #2ecc71;">${data.message}</h3>
+                            <p style="margin: 10px 0; color: #aaa;">${data.vulnerability_explanation}</p>
+                            <h4 style="margin-top: 15px; color: #fff;">User Info:</h4>
+                            <div class="response-box">${JSON.stringify(data.user, null, 2)}</div>
+                        </div>
+                        <div class="card">
+                            <h3 style="color: #2ecc71;">How to Prevent This Attack</h3>
+                            <ul class="prevention-list">
+                                ${data.prevention.map(p => `<li>${p}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                } else {
+                    result.innerHTML = `
+                        <div class="card error-card">
+                            <h3 style="color: #e94560;">${data.error}</h3>
+                            <p style="margin: 10px 0;">Your current role: <strong>${data.your_role || 'unknown'}</strong></p>
+                            <p style="color: #888;">${data.hint || ''}</p>
+                            <h4 style="margin-top: 15px; color: #fff;">Server Response:</h4>
+                            <div class="response-box">${JSON.stringify(data, null, 2)}</div>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                loading.style.display = 'none';
+                result.style.display = 'block';
+                result.innerHTML = `
+                    <div class="card error-card">
+                        <h3 style="color: #e94560;">Error</h3>
+                        <p>Failed to connect. Are you logged in?</p>
+                        <a href="/" class="btn" style="background:#f39c12;color:white;margin-top:10px;display:inline-block;">Go to Login</a>
+                    </div>
+                `;
+            }
+        }
+
+        checkAccess();
+    </script>
+</body>
+</html>

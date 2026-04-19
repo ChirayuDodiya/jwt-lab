@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 3: Dashboard - JWT Weak Signing Key</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000000;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #111111;
+            border: 1px solid #0f3460;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .header h2 {
+            font-size: 18px;
+            color: #fff;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-badge {
+            background: #1a1a1a;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-danger {
+            background: #e94560;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c73a52;
+        }
+
+        .btn-warning {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #c0392b;
+        }
+
+        .btn-success {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #27ae60;
+        }
+
+        .card {
+            background: #111111;
+            border: 1px solid #0f3460;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .card h3 {
+            color: #e74c3c;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .step {
+            background: #0a0a0a;
+            border-left: 3px solid #e74c3c;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: #e74c3c;
+            color: white;
+            width: 24px;
+            height: 24px;
+            text-align: center;
+            line-height: 24px;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        code {
+            background: #0f3460;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #e74c3c;
+            font-size: 13px;
+        }
+
+        pre {
+            background: #0d1117;
+            border: 1px solid #0f3460;
+            border-radius: 4px;
+            padding: 15px;
+            overflow-x: auto;
+            margin: 10px 0;
+            font-size: 13px;
+            color: #c9d1d9;
+        }
+
+        .endpoint-box {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .endpoint-card {
+            flex: 1;
+            min-width: 250px;
+            background: #0a0a0a;
+            border: 1px solid #0f3460;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .endpoint-card h4 {
+            margin-bottom: 10px;
+        }
+
+        .endpoint-card.vulnerable {
+            border-color: #e94560;
+        }
+
+        .endpoint-card.secure {
+            border-color: #2ecc71;
+        }
+
+        .token-display {
+            background: #0d1117;
+            border: 1px solid #0f3460;
+            border-radius: 4px;
+            padding: 10px;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 10px 0;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        .objective-box {
+            background: #1a0a0a;
+            border: 1px solid #e74c3c;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .objective-box h3 {
+            color: #e74c3c;
+            margin-bottom: 10px;
+        }
+
+        .objective-box ol {
+            padding-left: 20px;
+            color: #ccc;
+        }
+
+        .objective-box li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h2>Lab 3: JWT Weak Signing Key</h2>
+        <div class="user-info">
+            <span class="user-badge" id="userBadge">Loading...</span>
+            <button class="btn btn-danger" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <!-- Token Display -->
+    <div class="card">
+        <h3>Your Current JWT Token</h3>
+        <div class="token-display" id="tokenDisplay">Loading...</div>
+        <p style="font-size: 13px; color: #888; margin-top: 5px;">This token is signed with a weak secret key.
+            Copy it and use hashcat to brute-force the secret!</p>
+    </div>
+
+    <!-- Lab Objective -->
+    <div class="objective-box">
+        <h3>🎯 Lab Objective</h3>
+        <ol>
+            <li>Brute-force the JWT secret key using hashcat</li>
+            <li>Forge a new token with <code>sub: "admin"</code> signed with the cracked key</li>
+            <li>Access the admin panel at <code>/vulnerable-admin.html</code> to solve the lab</li>
+        </ol>
+    </div>
+
+    <!-- Attack Instructions -->
+    <div class="card">
+        <h3>Attack Instructions — Brute-Force Weak Secret Key</h3>
+        <p style="margin-bottom: 15px; color: #aaa;">
+            The server uses an extremely weak secret to sign JWTs. You can crack it using
+            <code>hashcat</code> with a common secrets wordlist, then forge any token you want.
+        </p>
+
+        <div class="step">
+            <span class="step-number">1</span>
+            <strong>Copy your JWT token</strong><br>
+            Copy the JWT shown above. You'll need it for the hashcat command.
+        </div>
+
+        <div class="step">
+            <span class="step-number">2</span>
+            <strong>Brute-force the secret with hashcat</strong><br>
+            Run the following command to crack the JWT signing key:
+            <pre>hashcat -a 0 -m 16500 &lt;YOUR-JWT&gt; /path/to/jwt.secrets.list</pre>
+            <p style="color: #aaa; margin-top: 5px;">
+                If successful, this will reveal the weak secret key. If you run it again, add <code>--show</code>.
+            </p>
+        </div>
+
+        <div class="step">
+            <span class="step-number">3</span>
+            <strong>Base64-encode the cracked secret</strong><br>
+            Using Burp Decoder or the command line, Base64-encode the secret:
+            <pre># Example: if the secret is "secret1"
+echo -n 'secret1' | base64
+# Output: c2VjcmV0MQ==</pre>
+        </div>
+
+        <div class="step">
+            <span class="step-number">4</span>
+            <strong>Create a signing key in Burp Suite</strong><br>
+            <ol style="margin: 10px 0; padding-left: 20px; color: #ccc;">
+                <li style="margin-bottom: 8px;">Go to the <code>JWT Editor Keys</code> tab → click
+                    <code>New Symmetric Key</code></li>
+                <li style="margin-bottom: 8px;">Click <code>Generate</code> to create a new key in JWK format</li>
+                <li style="margin-bottom: 8px;">Replace the <code>k</code> property value with the Base64-encoded secret
+                </li>
+                <li style="margin-bottom: 8px;">Click <code>OK</code> to save</li>
+            </ol>
+            <pre>// JWK format with the cracked secret:
+{
+    "kty": "oct",
+    "kid": "...",
+    "k": "c2VjcmV0MQ=="   ← Base64 of the cracked secret
+}</pre>
+        </div>
+
+        <div class="step">
+            <span class="step-number">5</span>
+            <strong>Forge and sign a modified JWT</strong><br>
+            <ol style="margin: 10px 0; padding-left: 20px; color: #ccc;">
+                <li style="margin-bottom: 8px;">In Burp Repeater, switch to the <code>JSON Web Token</code> tab</li>
+                <li style="margin-bottom: 8px;">Change <code>"sub"</code> to <code>"admin"</code></li>
+                <li style="margin-bottom: 8px;">Click <code>Sign</code> → select your key → choose
+                    <code>Don't modify header</code></li>
+            </ol>
+            <pre>// Modified payload:
+{
+  "sub": "admin",
+  "role": "admin",
+  "iat": 1234567890,
+  "exp": 9999999999
+}</pre>
+        </div>
+
+        <div class="step">
+            <span class="step-number">6</span>
+            <strong>Access the vulnerable admin panel</strong><br>
+            Send the forged token to access <code>/api/vulnerable-admin</code> (or click the button below) to solve the lab.
+        </div>
+    </div>
+
+    <!-- Endpoints -->
+    <div class="card">
+        <h3>Test Endpoints</h3>
+        <div class="endpoint-box">
+            <div class="endpoint-card vulnerable">
+                <h4 style="color: #e94560;">Vulnerable Admin</h4>
+                <p style="font-size: 13px; color: #aaa; margin-bottom: 15px;">
+                    Uses a weak secret — brute-forceable!
+                </p>
+                <a href="/vulnerable-admin.html" class="btn btn-warning">Access Vulnerable Admin</a>
+            </div>
+            <div class="endpoint-card secure">
+                <h4 style="color: #2ecc71;">Secure Admin</h4>
+                <p style="font-size: 13px; color: #aaa; margin-bottom: 15px;">
+                    Uses a strong secret — brute-force infeasible
+                </p>
+                <a href="/secure-admin.html" class="btn btn-success">Access Secure Admin</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadUser() {
+            try {
+                const res = await fetch('/api/me');
+                const data = await res.json();
+                if (data.user) {
+                    document.getElementById('userBadge').textContent = `Logged in as: ${data.user.sub} (${data.user.role})`;
+                }
+            } catch (e) {
+                window.location.href = '/';
+            }
+        }
+
+        function showToken() {
+            const cookies = document.cookie.split(';');
+            for (let c of cookies) {
+                const [name, value] = c.trim().split('=');
+                if (name === 'token') {
+                    document.getElementById('tokenDisplay').textContent = value;
+                    return;
+                }
+            }
+            document.getElementById('tokenDisplay').textContent = 'No token found';
+        }
+
+        async function logout() {
+            await fetch('/logout', { method: 'POST' });
+            document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            window.location.href = '/';
+        }
+
+        loadUser();
+        showToken();
+    </script>
+</body>
+
+</html>
