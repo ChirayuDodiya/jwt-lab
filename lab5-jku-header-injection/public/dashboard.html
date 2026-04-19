@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 5: Dashboard - JWT jku Header Injection</title>
+    <meta name="description" content="Lab 5 dashboard for JWT jku header injection vulnerability.">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000000;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #111111;
+            border: 1px solid #0f3460;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .header h2 {
+            font-size: 18px;
+            color: #fff;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-badge {
+            background: #1a1a1a;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-danger  { background: #e94560; color: white; }
+        .btn-danger:hover  { background: #c73a52; }
+        .btn-primary { background: #0f3460; color: white; }
+        .btn-primary:hover { background: #1a4a8a; }
+        .btn-success { background: #2ecc71; color: white; }
+        .btn-success:hover { background: #27ae60; }
+        .btn-info    { background: #3498db; color: white; }
+        .btn-info:hover    { background: #2980b9; }
+
+        .card {
+            background: #111111;
+            border: 1px solid #0f3460;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .card h3 {
+            color: #e94560;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .step {
+            background: #0a0a0a;
+            border-left: 3px solid #e94560;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: #e94560;
+            color: white;
+            width: 24px;
+            height: 24px;
+            text-align: center;
+            line-height: 24px;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        code {
+            background: #0f3460;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #e94560;
+            font-size: 13px;
+        }
+
+        pre {
+            background: #0d1117;
+            border: 1px solid #0f3460;
+            border-radius: 4px;
+            padding: 15px;
+            overflow-x: auto;
+            margin: 10px 0;
+            font-size: 13px;
+            color: #c9d1d9;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .endpoint-box {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .endpoint-card {
+            flex: 1;
+            min-width: 250px;
+            background: #0a0a0a;
+            border: 1px solid #0f3460;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .endpoint-card h4 { margin-bottom: 10px; }
+        .endpoint-card.vulnerable { border-color: #e94560; }
+        .endpoint-card.secure     { border-color: #2ecc71; }
+
+        .token-display {
+            background: #0d1117;
+            border: 1px solid #0f3460;
+            border-radius: 4px;
+            padding: 10px;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 10px 0;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        .url-box {
+            background: #0a0a0a;
+            border: 1px solid #0f3460;
+            border-radius: 4px;
+            padding: 10px 14px;
+            font-family: monospace;
+            font-size: 13px;
+            color: #3498db;
+            margin: 8px 0;
+            word-break: break-all;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .tag-vuln   { background: #e94560; color: #fff; }
+        .tag-secure { background: #2ecc71; color: #000; }
+
+        .exploit-form {
+            margin-top: 15px;
+        }
+
+        .exploit-form textarea {
+            width: 100%;
+            background: #0d1117;
+            border: 1px solid #0f3460;
+            border-radius: 4px;
+            padding: 12px;
+            color: #c9d1d9;
+            font-family: monospace;
+            font-size: 13px;
+            resize: vertical;
+            min-height: 180px;
+        }
+
+        .exploit-form textarea:focus {
+            outline: none;
+            border-color: #e94560;
+        }
+
+        .exploit-result {
+            margin-top: 10px;
+            font-size: 13px;
+            display: none;
+        }
+
+        .exploit-result.ok  { color: #2ecc71; }
+        .exploit-result.err { color: #e94560; }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h2>Lab 5: JWT jku Header Injection</h2>
+        <div class="user-info">
+            <span class="user-badge" id="userBadge">Loading...</span>
+            <button class="btn btn-danger" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <!-- Token Display -->
+    <div class="card">
+        <h3>Your Current JWT Token</h3>
+        <div class="token-display" id="tokenDisplay">Loading...</div>
+        <p style="font-size: 13px; color: #888; margin-top: 5px;">
+            This RS256-signed token is stored in your browser cookie.
+            The header contains a <code>jku</code> parameter pointing to the server's own JWKS endpoint.
+        </p>
+    </div>
+
+    <!-- Key URLs -->
+    <div class="card">
+        <h3>Key Endpoints</h3>
+        <table style="width:100%; border-collapse:collapse; font-size:13px;">
+            <thead>
+                <tr>
+                    <th style="text-align:left; padding:8px; border-bottom:1px solid #0f3460; color:#888;">Name</th>
+                    <th style="text-align:left; padding:8px; border-bottom:1px solid #0f3460; color:#888;">URL</th>
+                    <th style="text-align:left; padding:8px; border-bottom:1px solid #0f3460; color:#888;">Purpose</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="padding:8px; border-bottom:1px solid #1a1a1a;">Server JWKS</td>
+                    <td style="padding:8px; border-bottom:1px solid #1a1a1a;"><code id="serverJwksUrl"></code></td>
+                    <td style="padding:8px; border-bottom:1px solid #1a1a1a; color:#888;">Legitimate key source</td>
+                </tr>
+                <tr>
+                    <td style="padding:8px;">Exploit JWKS</td>
+                    <td style="padding:8px;"><code id="exploitJwksUrl"></code></td>
+                    <td style="padding:8px; color:#888;"><span class="tag tag-vuln">ATTACK</span> Store your malicious JWK Set here</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Exploit Server -->
+    <div class="card">
+        <h3>🔧 Exploit Server — Upload Your Malicious JWK Set</h3>
+        <p style="font-size:13px; color:#aaa; margin-bottom:12px;">
+            Generate an RSA key pair with the JWT Editor in Burp Suite, copy your public key as JWK,
+            paste it into the array below, then click <strong>Store on Exploit Server</strong>.
+        </p>
+        <div class="exploit-form">
+            <label style="font-size:13px; color:#aaa; display:block; margin-bottom:6px;">JWK Set Body (JSON):</label>
+            <textarea id="exploitBody">{
+    "keys": [
+        {
+            "kty": "RSA",
+            "e": "AQAB",
+            "kid": "YOUR-KEY-ID-HERE",
+            "n": "YOUR-MODULUS-HERE"
+        }
+    ]
+}</textarea>
+            <button class="btn btn-danger" style="margin-top:10px; width:auto; padding:10px 24px;" onclick="storeExploit()">
+                Store on Exploit Server
+            </button>
+            <button class="btn btn-primary" style="margin-top:10px; margin-left:10px; width:auto; padding:10px 24px;" onclick="viewExploit()">
+                View Current JWKS
+            </button>
+            <div class="exploit-result" id="exploitResult"></div>
+        </div>
+    </div>
+
+    <!-- Attack Instructions -->
+    <div class="card">
+        <h3>Attack Instructions — How to Bypass via jku Header Injection</h3>
+        <p style="margin-bottom: 15px; color: #aaa;">
+            The vulnerable endpoint reads the <code>jku</code> URL from the JWT header and fetches the
+            public key from it <strong>without validating the domain</strong>. You can point it to your
+            exploit server and forge an administrator token.
+        </p>
+
+        <div class="step">
+            <span class="step-number">1</span>
+            <strong>Generate a new RSA key pair in Burp Suite</strong><br>
+            Go to <em>JWT Editor Keys</em> tab → click <em>New RSA Key</em> → click <em>Generate</em> → OK.
+        </div>
+
+        <div class="step">
+            <span class="step-number">2</span>
+            <strong>Upload your public key to the exploit server</strong><br>
+            Right-click the new key → <em>Copy Public Key as JWK</em>. Paste it into the exploit server box above
+            (inside the <code>keys</code> array) and click <strong>Store on Exploit Server</strong>.
+            The exploit URL is: <code id="exploitUrlStep2"></code>
+        </div>
+
+        <div class="step">
+            <span class="step-number">3</span>
+            <strong>Intercept the GET /api/vulnerable-admin request in Burp</strong><br>
+            Click the button below, intercept via Burp proxy, and switch to the
+            <em>JSON Web Token</em> tab in Repeater.
+        </div>
+
+        <div class="step">
+            <span class="step-number">4</span>
+            <strong>Modify the JWT header</strong><br>
+            In the JWT header, change:
+            <pre>{
+  "typ": "JWT",
+  "alg": "RS256",
+  "kid": "YOUR-KEY-ID",       ← set to the kid of your generated key
+  "jku": "http://localhost:PORT/exploit/jwks.json"   ← point to exploit server
+}</pre>
+        </div>
+
+        <div class="step">
+            <span class="step-number">5</span>
+            <strong>Change the sub claim to admin</strong><br>
+            In the JWT payload, set <code>"sub": "admin"</code>.
+        </div>
+
+        <div class="step">
+            <span class="step-number">6</span>
+            <strong>Sign with your RSA private key</strong><br>
+            Click <em>Sign</em> at the bottom of the JWT tab, select the RSA key you generated,
+            choose <em>Don't modify header</em>, then click OK.
+        </div>
+
+        <div class="step">
+            <span class="step-number">7</span>
+            <strong>Access the vulnerable admin panel</strong><br>
+            Send the forged request to <code>/api/vulnerable-admin</code> (or click the button below) to solve the lab.
+        </div>
+    </div>
+
+    <!-- Endpoints -->
+    <div class="card">
+        <h3>Test Endpoints</h3>
+        <div class="endpoint-box">
+            <div class="endpoint-card vulnerable">
+                <h4 style="color: #e94560;">Vulnerable Admin</h4>
+                <p style="font-size: 13px; color: #aaa; margin-bottom: 15px;">
+                    Fetches key from <code>jku</code> URL without domain validation
+                    <span class="tag tag-vuln" style="margin-left:5px;">VULNERABLE</span>
+                </p>
+                <a href="/vulnerable-admin.html" class="btn btn-danger">Access Vulnerable Admin</a>
+            </div>
+            <div class="endpoint-card secure">
+                <h4 style="color: #2ecc71;">Secure Admin</h4>
+                <p style="font-size: 13px; color: #aaa; margin-bottom: 15px;">
+                    Validates <code>jku</code> URL against trusted domain allowlist
+                    <span class="tag tag-secure" style="margin-left:5px;">SECURE</span>
+                </p>
+                <a href="/secure-admin.html" class="btn btn-success">Access Secure Admin</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const BASE = window.location.origin;
+
+        document.getElementById('serverJwksUrl').textContent  = `${BASE}/.well-known/jwks.json`;
+        document.getElementById('exploitJwksUrl').textContent = `${BASE}/exploit/jwks.json`;
+        document.getElementById('exploitUrlStep2').textContent = `${BASE}/exploit/jwks.json`;
+
+        async function loadUser() {
+            try {
+                const res  = await fetch('/api/me');
+                const data = await res.json();
+                if (data.user) {
+                    document.getElementById('userBadge').textContent = `Logged in as: ${data.user.sub} (${data.user.role})`;
+                }
+            } catch (e) {
+                window.location.href = '/';
+            }
+        }
+
+        function showToken() {
+            const cookies = document.cookie.split(';');
+            for (let c of cookies) {
+                const [name, value] = c.trim().split('=');
+                if (name === 'token') {
+                    document.getElementById('tokenDisplay').textContent = value;
+                    return;
+                }
+            }
+            document.getElementById('tokenDisplay').textContent = 'No token found';
+        }
+
+        async function storeExploit() {
+            const body = document.getElementById('exploitBody').value;
+            const resultEl = document.getElementById('exploitResult');
+            try {
+                const parsed = JSON.parse(body);
+                const res = await fetch('/exploit/jwks.json', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(parsed)
+                });
+                const data = await res.json();
+                resultEl.textContent = '✅ ' + data.message;
+                resultEl.className = 'exploit-result ok';
+                resultEl.style.display = 'block';
+            } catch (e) {
+                resultEl.textContent = '❌ Failed: ' + e.message;
+                resultEl.className = 'exploit-result err';
+                resultEl.style.display = 'block';
+            }
+        }
+
+        async function viewExploit() {
+            const resultEl = document.getElementById('exploitResult');
+            try {
+                const res  = await fetch('/exploit/jwks.json');
+                const data = await res.json();
+                document.getElementById('exploitBody').value = JSON.stringify(data, null, 4);
+                resultEl.textContent = '✅ Current exploit JWKS loaded.';
+                resultEl.className = 'exploit-result ok';
+                resultEl.style.display = 'block';
+            } catch (e) {
+                resultEl.textContent = '❌ Failed: ' + e.message;
+                resultEl.className = 'exploit-result err';
+                resultEl.style.display = 'block';
+            }
+        }
+
+        async function logout() {
+            await fetch('/logout', { method: 'POST' });
+            document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            window.location.href = '/';
+        }
+
+        loadUser();
+        showToken();
+    </script>
+</body>
+
+</html>

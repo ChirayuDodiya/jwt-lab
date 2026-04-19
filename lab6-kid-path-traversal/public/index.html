@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lab 1: JWT Unverified Signature - Login</title>
+    <title>Lab 6: JWT kid Path Traversal - Login</title>
+    <meta name="description" content="JWT security lab demonstrating authentication bypass via kid header path traversal.">
     <style>
         * {
             margin: 0;
@@ -27,7 +28,7 @@
             border: 1px solid #0f3460;
             border-radius: 8px;
             padding: 40px;
-            width: 400px;
+            width: 420px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
 
@@ -115,14 +116,44 @@
             padding: 2px 6px;
             border-radius: 3px;
         }
+
+        .difficulty {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 20px;
+        }
+
+        .difficulty-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #e94560;
+        }
+
+        .difficulty-dot.inactive {
+            background: #333;
+        }
+
+        .difficulty-label {
+            font-size: 12px;
+            color: #888;
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <span class="lab-badge">LAB 1</span>
-        <h1>JWT Unverified Signature</h1>
-        <p class="subtitle">Authentication Bypass via Unverified Signature</p>
+        <span class="lab-badge">LAB 6</span>
+        <h1>JWT kid Path Traversal</h1>
+        <p class="subtitle">Authentication Bypass via kid Header Path Traversal</p>
+
+        <div class="difficulty">
+            <div class="difficulty-dot"></div>
+            <div class="difficulty-dot"></div>
+            <div class="difficulty-dot inactive"></div>
+            <span class="difficulty-label">PRACTITIONER</span>
+        </div>
 
         <form id="loginForm">
             <label for="username">Username</label>
@@ -132,38 +163,26 @@
             <input type="password" id="password" name="password" placeholder="Enter password" required>
 
             <div class="error" id="errorMsg"></div>
-            <button type="submit">Login</button>
+            <button type="submit" id="loginBtn">Login</button>
         </form>
 
-<<<<<<< HEAD
-        <div class="info-box" id="credsBox" style="display: none;">
-            <strong>Lab Credentials (from .env):</strong><br>
-            Username: <code id="demoUser">...</code><br>
-            Password: <code id="demoPass">...</code>
-=======
         <div class="info-box">
             <strong>Lab Credentials:</strong><br>
-            Username: <code>chirayu</code><br>
-            Password: <code>chirayu123</code>
->>>>>>> eb2aa1a73d0a937a559764f7cd2d99ba1491b0f5
+            Username: <code>wiener</code><br>
+            Password: <code>peter</code>
         </div>
     </div>
 
     <script>
-<<<<<<< HEAD
-        fetch('/api/credentials').then(r => r.json()).then(data => {
-            document.getElementById('demoUser').textContent = data.username;
-            document.getElementById('demoPass').textContent = data.password;
-            document.getElementById('credsBox').style.display = 'block';
-        }).catch(console.error);
-
-=======
->>>>>>> eb2aa1a73d0a937a559764f7cd2d99ba1491b0f5
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             const errorMsg = document.getElementById('errorMsg');
+            const loginBtn = document.getElementById('loginBtn');
+
+            loginBtn.textContent = 'Logging in...';
+            loginBtn.disabled = true;
 
             try {
                 const res = await fetch('/login', {
@@ -178,10 +197,14 @@
                 } else {
                     errorMsg.textContent = data.message;
                     errorMsg.style.display = 'block';
+                    loginBtn.textContent = 'Login';
+                    loginBtn.disabled = false;
                 }
             } catch (err) {
                 errorMsg.textContent = 'Connection error.';
                 errorMsg.style.display = 'block';
+                loginBtn.textContent = 'Login';
+                loginBtn.disabled = false;
             }
         });
     </script>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 3: Secure Admin Panel</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #000; color: #e0e0e0; min-height: 100vh; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #111; border: 1px solid #2ecc71; border-radius: 8px; margin-bottom: 20px; }
+        .header h2 { font-size: 18px; color: #2ecc71; }
+        .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold; text-decoration: none; }
+        .btn-back { background: #0f3460; color: white; }
+        .btn-back:hover { background: #1a4a8a; }
+        .card { background: #111; border: 1px solid #0f3460; border-radius: 8px; padding: 25px; margin-bottom: 20px; }
+        .success-card { border-color: #2ecc71; background: #0a1a0a; }
+        .error-card { border-color: #e94560; background: #1a0a0a; }
+        .response-box { background: #0d1117; border: 1px solid #0f3460; border-radius: 4px; padding: 15px; font-family: monospace; font-size: 13px; white-space: pre-wrap; word-break: break-word; }
+        .loading { text-align: center; padding: 40px; color: #888; }
+        #result { display: none; }
+        code { background: #0f3460; padding: 2px 6px; border-radius: 3px; color: #2ecc71; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>Secure Admin Panel — Strong Secret Key</h2>
+        <a href="/dashboard.html" class="btn btn-back">Back to Dashboard</a>
+    </div>
+    <div class="loading" id="loading">Loading... Verifying your token...</div>
+    <div id="result"></div>
+    <script>
+        async function checkAccess() {
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            try {
+                const res = await fetch('/api/secure-admin');
+                const data = await res.json();
+                loading.style.display = 'none';
+                result.style.display = 'block';
+                if (data.success) {
+                    result.innerHTML = '<div class="card success-card"><h3 style="color:#2ecc71;">' + data.message + '</h3><p style="margin:10px 0;color:#aaa;">' + data.security_note + '</p><h4 style="margin-top:15px;color:#fff;">Verified User Info:</h4><div class="response-box">' + JSON.stringify(data.user, null, 2) + '</div></div>';
+                } else {
+                    result.innerHTML = '<div class="card error-card"><h3 style="color:#e94560;">' + data.error + '</h3><p style="margin:10px 0;">Your current role: <strong>' + (data.your_role || 'unknown') + '</strong></p><p style="color:#888;margin-top:10px;">' + (data.note || data.details || '') + '</p>' +
+                        '<div class="card" style="margin-top:15px;border-color:#2ecc71;"><h4 style="color:#2ecc71;">Why This Endpoint is Secure</h4><p style="margin-top:10px;">This endpoint uses a <code>strong, random secret key</code> that is computationally infeasible to brute-force.</p><ul style="margin-top:10px;padding-left:20px;color:#aaa;"><li>The secret is long, random, and not found in any wordlist</li><li>Brute-forcing would take an astronomically long time</li><li>Tokens signed with the weak secret are rejected here</li><li>Always use cryptographically strong keys (256+ bits of entropy)</li></ul></div>' +
+                        '<h4 style="margin-top:15px;color:#fff;">Server Response:</h4><div class="response-box">' + JSON.stringify(data, null, 2) + '</div></div>';
+                }
+            } catch (err) {
+                loading.style.display = 'none';
+                result.style.display = 'block';
+                result.innerHTML = '<div class="card error-card"><h3 style="color:#e94560;">Error</h3><p>Failed to connect. Are you logged in?</p><a href="/" class="btn" style="background:#e74c3c;color:white;margin-top:10px;display:inline-block;">Go to Login</a></div>';
+            }
+        }
+        checkAccess();
+    </script>
+</body>
+</html>

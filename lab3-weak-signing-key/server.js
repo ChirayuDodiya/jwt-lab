@@ -1,11 +1,11 @@
 /**
- * Lab 2: JWT Authentication Bypass via Accepting Unsigned Tokens (alg: "none")
+ * Lab 3: JWT Authentication Bypass via Weak Signing Key
  * 
- * VULNERABILITY: The vulnerable endpoint accepts JWTs with algorithm "none",
- * which means no signature is required. An attacker can forge tokens by setting
- * the algorithm to "none" and removing the signature.
+ * VULNERABILITY: The server uses an extremely weak secret key ("secret1")
+ * to sign and verify JWTs. This can be easily brute-forced using hashcat
+ * with a wordlist of common secrets, allowing an attacker to forge tokens.
  * 
- * Port: 3002
+ * Port: 3003
  */
 
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
@@ -20,8 +20,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-const PORT = process.env.LAB2_PORT || 3002;
-const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-jwt-key-2024';
+const PORT = process.env.LAB3_PORT || 3003;
+
+// VULNERABLE: Extremely weak secret — easily brute-forced with hashcat
+const WEAK_SECRET = 'secret1';
+
+// SECURE: A strong, random secret key
+const STRONG_SECRET = process.env.JWT_SECRET || 'super-secret-jwt-key-2024';
 
 // ==================== LOGIN ====================
 app.post('/login', (req, res) => {
@@ -33,9 +38,10 @@ app.post('/login', (req, res) => {
     };
 
     if (validUsers[username] && validUsers[username] === password) {
+        // Sign with the WEAK secret — this is the vulnerability!
         const token = jwt.sign(
             { sub: username, role: username === 'admin' ? 'admin' : 'user' },
-            JWT_SECRET,
+            WEAK_SECRET,
             { algorithm: 'HS256', expiresIn: '1h' }
         );
 
@@ -47,7 +53,7 @@ app.post('/login', (req, res) => {
 });
 
 // ==================== VULNERABLE ADMIN ENDPOINT ====================
-// BUG: Accepts tokens with alg: "none" — no signature verification!
+// BUG: Uses a weak secret key that can be brute-forced with hashcat
 app.get('/api/vulnerable-admin', (req, res) => {
     const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
 
@@ -56,33 +62,22 @@ app.get('/api/vulnerable-admin', (req, res) => {
     }
 
     try {
-        // VULNERABLE: allows algorithm "none" which requires no signature
-        // First, check if the token uses alg: "none" — if so, accept it without signature check
-        const header = JSON.parse(Buffer.from(token.split('.')[0], 'base64url').toString());
-        let decoded;
-
-        if (header.alg && header.alg.toLowerCase() === 'none') {
-            // Simulate vulnerable behavior: accept unsigned tokens
-            decoded = jwt.decode(token);
-            if (!decoded) throw new Error('Invalid token payload');
-        } else {
-            // For other algorithms, verify normally
-            decoded = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] });
-        }
+        // VULNERABLE: Verifies with a weak secret that can be cracked
+        const decoded = jwt.verify(token, WEAK_SECRET, { algorithms: ['HS256'] });
 
         if (decoded.sub === 'admin') {
             return res.json({
                 success: true,
-                message: 'Congratulations! You accessed the admin panel using alg:none attack!',
+                message: 'Congratulations! You accessed the admin panel by forging a token with the cracked secret!',
                 user: decoded,
-                vulnerability_explanation: 'This endpoint accepted tokens with algorithm "none". The server was configured to allow unsigned tokens, meaning anyone can forge a valid token.',
+                vulnerability_explanation: 'This server uses an extremely weak signing key ("secret1") that can be brute-forced using hashcat with a common secrets wordlist. Once cracked, an attacker can sign any token they want.',
                 prevention: [
-                    '1. Never include "none" in the list of allowed algorithms.',
-                    '2. Always explicitly specify allowed algorithms: { algorithms: ["HS256"] }',
-                    '3. Use jwt.verify() with a strict algorithm whitelist.',
-                    '4. Some JWT libraries accept "none" by default — always check your library\'s configuration.',
-                    '5. Validate the "alg" header claim on the server side before processing.',
-                    '6. Consider using asymmetric algorithms (RS256) for better security.'
+                    '1. Use a cryptographically strong, random secret key (at least 256 bits).',
+                    '2. Never use common words, passwords, or predictable strings as JWT secrets.',
+                    '3. Store secrets securely using environment variables or a secrets manager.',
+                    '4. Consider using asymmetric algorithms (RS256/ES256) where the private key never leaves the server.',
+                    '5. Rotate signing keys periodically.',
+                    '6. Use a key derivation function (KDF) if deriving keys from passwords.'
                 ]
             });
         }
@@ -90,7 +85,7 @@ app.get('/api/vulnerable-admin', (req, res) => {
         return res.status(403).json({
             error: 'Access denied. Admin privileges required.',
             your_role: decoded.sub,
-            hint: 'Try creating a token with algorithm "none" and no signature...'
+            hint: 'Try brute-forcing the JWT secret key using hashcat: hashcat -a 0 -m 16500 <jwt> /path/to/jwt.secrets.list'
         });
     } catch (err) {
         return res.status(401).json({
@@ -100,8 +95,10 @@ app.get('/api/vulnerable-admin', (req, res) => {
     }
 });
 
+
+
 // ==================== SECURE ADMIN ENDPOINT ====================
-// SECURE: Only accepts HS256 — rejects "none" algorithm
+// SECURE: Uses a strong secret key that cannot be easily brute-forced
 app.get('/api/secure-admin', (req, res) => {
     const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
 
@@ -110,28 +107,30 @@ app.get('/api/secure-admin', (req, res) => {
     }
 
     try {
-        // SECURE: Only allows HS256 — "none" algorithm is rejected!
-        const decoded = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] });
+        // First try with strong secret (properly signed tokens)
+        // Note: Tokens from this lab's login are signed with the WEAK secret,
+        // so this will reject them — demonstrating why strong secrets matter
+        const decoded = jwt.verify(token, STRONG_SECRET, { algorithms: ['HS256'] });
 
         if (decoded.sub === 'admin') {
             return res.json({
                 success: true,
                 message: 'Welcome Admin! This is the secure admin panel.',
                 user: decoded,
-                security_note: 'This endpoint only accepts HS256 algorithm. Tokens with alg:"none" are rejected.'
+                security_note: 'This endpoint uses a strong, random secret key. Brute-forcing it is computationally infeasible.'
             });
         }
 
         return res.status(403).json({
             error: 'Access denied. Admin privileges required.',
             your_role: decoded.sub,
-            note: 'This endpoint only accepts HS256 tokens. The alg:none attack will not work here.'
+            note: 'This endpoint uses a strong signing key. The brute-force attack will not work here.'
         });
     } catch (err) {
         return res.status(401).json({
             error: 'Invalid or tampered token detected!',
             details: err.message,
-            note: 'The server only accepts HS256 signed tokens. alg:none tokens are rejected.'
+            note: 'This endpoint uses a strong secret key. Tokens signed with weak secrets are rejected, and brute-forcing the strong key is infeasible.'
         });
     }
 });
@@ -147,17 +146,6 @@ app.get('/api/me', (req, res) => {
     return res.json({ user: decoded });
 });
 
-<<<<<<< HEAD
-// ==================== CREDENTIALS ====================
-app.get('/api/credentials', (req, res) => {
-    res.json({
-        username: process.env.USER_USERNAME || 'wiener',
-        password: process.env.USER_PASSWORD || 'peter'
-    });
-});
-
-=======
->>>>>>> eb2aa1a73d0a937a559764f7cd2d99ba1491b0f5
 // ==================== LOGOUT ====================
 app.post('/logout', (req, res) => {
     res.clearCookie('token');
@@ -165,8 +153,9 @@ app.post('/logout', (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`\nLab 2: JWT alg:none Attack`);
+    console.log(`\nLab 3: JWT Weak Signing Key`);
     console.log(`   Running on http://localhost:${PORT}`);
+    console.log(`   Weak secret: "${WEAK_SECRET}" (brute-forceable!)`);
     console.log(`   Login with: ${process.env.USER_USERNAME} / ${process.env.USER_PASSWORD}`);
     console.log(`   Admin creds: ${process.env.ADMIN_USERNAME} / ${process.env.ADMIN_PASSWORD}\n`);
 });

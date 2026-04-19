@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lab 1: JWT Unverified Signature - Login</title>
+    <title>Lab 3: JWT Weak Signing Key - Login</title>
     <style>
         * {
             margin: 0;
@@ -32,7 +32,7 @@
         }
 
         .lab-badge {
-            background: #e94560;
+            background: #e74c3c;
             color: white;
             padding: 4px 12px;
             border-radius: 4px;
@@ -74,13 +74,13 @@
 
         input:focus {
             outline: none;
-            border-color: #e94560;
+            border-color: #e74c3c;
         }
 
         button {
             width: 100%;
             padding: 12px;
-            background: #e94560;
+            background: #e74c3c;
             color: white;
             border: none;
             border-radius: 4px;
@@ -90,7 +90,7 @@
         }
 
         button:hover {
-            background: #c73a52;
+            background: #c0392b;
         }
 
         .error {
@@ -110,7 +110,7 @@
         }
 
         .info-box code {
-            color: #e94560;
+            color: #e74c3c;
             background: #0f3460;
             padding: 2px 6px;
             border-radius: 3px;
@@ -120,9 +120,9 @@
 
 <body>
     <div class="container">
-        <span class="lab-badge">LAB 1</span>
-        <h1>JWT Unverified Signature</h1>
-        <p class="subtitle">Authentication Bypass via Unverified Signature</p>
+        <span class="lab-badge">LAB 3</span>
+        <h1>JWT Weak Signing Key</h1>
+        <p class="subtitle">Authentication Bypass via Brute-Forceable Secret</p>
 
         <form id="loginForm">
             <label for="username">Username</label>
@@ -135,30 +135,14 @@
             <button type="submit">Login</button>
         </form>
 
-<<<<<<< HEAD
-        <div class="info-box" id="credsBox" style="display: none;">
-            <strong>Lab Credentials (from .env):</strong><br>
-            Username: <code id="demoUser">...</code><br>
-            Password: <code id="demoPass">...</code>
-=======
         <div class="info-box">
             <strong>Lab Credentials:</strong><br>
-            Username: <code>chirayu</code><br>
-            Password: <code>chirayu123</code>
->>>>>>> eb2aa1a73d0a937a559764f7cd2d99ba1491b0f5
+            Username: <code>wiener</code><br>
+            Password: <code>peter</code>
         </div>
     </div>
 
     <script>
-<<<<<<< HEAD
-        fetch('/api/credentials').then(r => r.json()).then(data => {
-            document.getElementById('demoUser').textContent = data.username;
-            document.getElementById('demoPass').textContent = data.password;
-            document.getElementById('credsBox').style.display = 'block';
-        }).catch(console.error);
-
-=======
->>>>>>> eb2aa1a73d0a937a559764f7cd2d99ba1491b0f5
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('username').value;
