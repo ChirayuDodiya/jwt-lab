@@ -134,7 +134,6 @@ app.get('/api/me', (req, res) => {
     return res.json({ user: decoded });
 });
 
-<<<<<<< HEAD
 // ==================== CREDENTIALS (for index.html) ====================
 app.get('/api/credentials', (req, res) => {
     res.json({
@@ -143,8 +142,7 @@ app.get('/api/credentials', (req, res) => {
     });
 });
 
-=======
->>>>>>> eb2aa1a73d0a937a559764f7cd2d99ba1491b0f5
+
 // ==================== LOGOUT ====================
 app.post('/logout', (req, res) => {
     res.clearCookie('token');
