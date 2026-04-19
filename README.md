@@ -2,11 +2,7 @@
 
 A hands-on collection of JWT (JSON Web Token) vulnerability labs built with Node.js and Express. Inspired by PortSwigger's JWT labs, this project demonstrates common JWT security flaws and their mitigations.
 
-<<<<<<< HEAD
 Each lab contains a **vulnerable endpoint** (exploitable) and a **secure endpoint** (properly protected) so you can compare the difference.
-=======
-Each lab contains a **vulnerable endpoint** (exploitable) Fand a **secure endpoint** (properly protected) so you can compare the difference.
->>>>>>> eb2aa1a73d0a937a559764f7cd2d99ba1491b0f5
 
 ---
 
@@ -18,13 +14,10 @@ Each lab contains a **vulnerable endpoint** (exploitable) Fand a **secure endpoi
 - [Running the Labs](#running-the-labs)
 - [Lab 1: JWT Unverified Signature](#lab-1-jwt-unverified-signature)
 - [Lab 2: JWT alg:none Attack](#lab-2-jwt-algnone-attack)
-<<<<<<< HEAD
 - [Lab 3: JWT Weak Signing Key](#lab-3-jwt-weak-signing-key)
 - [Lab 4: JWT JWK Header Injection](#lab-4-jwt-jwk-header-injection)
 - [Lab 5: JWT jku Header Injection](#lab-5-jwt-jku-header-injection)
 - [Lab 6: JWT kid Path Traversal](#lab-6-jwt-kid-path-traversal)
-=======
->>>>>>> eb2aa1a73d0a937a559764f7cd2d99ba1491b0f5
 - [Lab 7: JWT Algorithm Confusion (HS256 / RSA)](#lab-7-jwt-algorithm-confusion-hs256--rsa)
 - [Lab 8: Algorithm Confusion (No Exposed Key)](#lab-8-algorithm-confusion-no-exposed-key)
 - [Tech Stack](#tech-stack)
@@ -39,7 +32,6 @@ jwt_lab/
 ├── package.json                  # Dependencies & scripts
 ├── lab1-unverified-signature/    # Lab 1
 │   ├── server.js                 # Express server (vulnerable + secure endpoints)
-<<<<<<< HEAD
 │   └── public/                   # Client-side UI
 ├── lab2-alg-none/                # Lab 2
 │   ├── server.js                 # Express server (alg:none vulnerability)
@@ -58,20 +50,10 @@ jwt_lab/
 │   ├── keys/                     # Directory storing server keys
 │   ├── dev/                      # Simulated system directory (for dev/null)
 │   └── public/
-=======
-│   └── public/
 │       ├── index.html            # Login page
 │       ├── dashboard.html        # Dashboard with attack instructions
 │       ├── vulnerable-admin.html # Vulnerable admin panel (jwt.decode)
 │       └── secure-admin.html     # Secure admin panel (jwt.verify)
-├── lab2-alg-none/                # Lab 2
-│   ├── server.js                 # Express server (alg:none vulnerability)
-│   └── public/
-│       ├── index.html            # Login page
-│       ├── dashboard.html        # Dashboard with attack instructions
-│       ├── vulnerable-admin.html # Vulnerable admin panel (accepts alg:none)
-│       └── secure-admin.html     # Secure admin panel (HS256 only)
->>>>>>> eb2aa1a73d0a937a559764f7cd2d99ba1491b0f5
 ├── lab7-algorithm-confusion/     # Lab 7
 │   ├── server.js                 # Express server (algorithm confusion vulnerability)
 │   └── public/
@@ -111,9 +93,8 @@ jwt_lab/
    ```env
    ADMIN_USERNAME=admin
    ADMIN_PASSWORD=admin123
-<<<<<<< HEAD
-   USER_USERNAME=wiener
-   USER_PASSWORD=peter
+   USER_USERNAME=chirayu
+   USER_PASSWORD=chirayu123
    JWT_SECRET=super-secret-jwt-key-2024
    LAB1_PORT=3001
    LAB2_PORT=3002
@@ -121,13 +102,6 @@ jwt_lab/
    LAB4_PORT=3004
    LAB5_PORT=3005
    LAB6_PORT=3006
-=======
-   USER_USERNAME=chirayu
-   USER_PASSWORD=chirayu123
-   JWT_SECRET=super-secret-jwt-key-2024
-   LAB1_PORT=3001
-   LAB2_PORT=3002
->>>>>>> eb2aa1a73d0a937a559764f7cd2d99ba1491b0f5
    LAB7_PORT=3007
    LAB8_PORT=3008
    ```
@@ -141,13 +115,10 @@ jwt_lab/
 ```bash
 npm run lab1    # Starts Lab 1 on http://localhost:3001
 npm run lab2    # Starts Lab 2 on http://localhost:3002
-<<<<<<< HEAD
 npm run lab3    # Starts Lab 3 on http://localhost:3003
 npm run lab4    # Starts Lab 4 on http://localhost:3004
 npm run lab5    # Starts Lab 5 on http://localhost:3005
 npm run lab6    # Starts Lab 6 on http://localhost:3006
-=======
->>>>>>> eb2aa1a73d0a937a559764f7cd2d99ba1491b0f5
 npm run lab7    # Starts Lab 7 on http://localhost:3007
 npm run lab8    # Starts Lab 8 on http://localhost:3008
 ```
@@ -155,11 +126,7 @@ npm run lab8    # Starts Lab 8 on http://localhost:3008
 **Run all labs simultaneously:**
 
 ```bash
-<<<<<<< HEAD
 npm run all     # Starts all labs concurrently
-=======
-npm run all     # Starts both labs concurrently
->>>>>>> eb2aa1a73d0a937a559764f7cd2d99ba1491b0f5
 ```
 
 ---
@@ -171,25 +138,10 @@ npm run all     # Starts both labs concurrently
 
 ### How the Attack Works
 
-<<<<<<< HEAD
 1. **Login** to receive a valid JWT token.
 2. **Intercept** the request to `/api/vulnerable-admin` using Burp Suite.
 3. **Decode** the JWT token.
 4. **Modify** the payload — change `"sub"` to `"admin"`.
-=======
-1. **Login** with `chirayu` / `chirayu123` to receive a valid JWT token.
-2. **Intercept** the request to `/api/vulnerable-admin` using Burp Suite.
-3. **Decode** the JWT token (at [jwt.io](https://jwt.io) or Burp's decoder). The payload looks like:
-   ```json
-   {
-     "sub": "chirayu",
-     "role": "user",
-     "iat": 1234567890,
-     "exp": 1234571490
-   }
-   ```
-4. **Modify** the payload — change `"sub"` to `"admin"` and `"role"` to `"admin"`.
->>>>>>> eb2aa1a73d0a937a559764f7cd2d99ba1491b0f5
 5. **Base64url-encode** the modified payload, replace it in the token, and forward the request.
 6. The server accepts it because `jwt.decode()` **does not verify the signature**.
 
@@ -200,8 +152,6 @@ npm run all     # Starts both labs concurrently
 | `/login` | POST | Authenticate and receive JWT |
 | `/api/vulnerable-admin` | GET | Uses `jwt.decode()` — signature NOT verified |
 | `/api/secure-admin` | GET | Uses `jwt.verify()` — signature IS verified |
-<<<<<<< HEAD
-=======
 | `/api/me` | GET | Returns current user info from token |
 | `/logout` | POST | Clears the token cookie |
 
@@ -211,7 +161,6 @@ The secure endpoint uses `jwt.verify(token, secret, { algorithms: ['HS256'] })` 
 - Validates the JWT signature against the server's secret key
 - Rejects any modified/tampered tokens
 - Only accepts HS256-signed tokens
->>>>>>> eb2aa1a73d0a937a559764f7cd2d99ba1491b0f5
 
 ---
 
@@ -222,7 +171,6 @@ The secure endpoint uses `jwt.verify(token, secret, { algorithms: ['HS256'] })` 
 
 ### How the Attack Works
 
-<<<<<<< HEAD
 1. **Login** to receive a valid JWT token.
 2. **Intercept** the request to `/api/vulnerable-admin` using Burp Suite.
 3. **Create a forged token** with `alg: "none"`:
@@ -230,18 +178,6 @@ The secure endpoint uses `jwt.verify(token, secret, { algorithms: ['HS256'] })` 
    - Payload: `{"sub":"admin",...}`
 4. **Base64url-encode** both header and payload.
 5. **Concatenate** with a dot and add a trailing dot (empty signature).
-=======
-1. **Login** with `chirayu` / `chirayu123` to receive a valid JWT token.
-2. **Intercept** the request to `/api/vulnerable-admin` using Burp Suite.
-3. **Create a forged token** with `alg: "none"`:
-   - Header: `{"alg":"none","typ":"JWT"}`
-   - Payload: `{"sub":"admin","role":"admin","iat":1234567890,"exp":9999999999}`
-4. **Base64url-encode** both header and payload.
-5. **Concatenate** with a dot and add a trailing dot (empty signature):
-   ```
-   eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTIzNDU2Nzg5MCwiZXhwIjo5OTk5OTk5OTk5fQ.
-   ```
->>>>>>> eb2aa1a73d0a937a559764f7cd2d99ba1491b0f5
 6. **Replace** the cookie value with the forged token and send the request.
 
 ### Endpoints
@@ -251,7 +187,6 @@ The secure endpoint uses `jwt.verify(token, secret, { algorithms: ['HS256'] })` 
 | `/login` | POST | Authenticate and receive JWT |
 | `/api/vulnerable-admin` | GET | Accepts `alg: "none"` — unsigned tokens work |
 | `/api/secure-admin` | GET | Only accepts `HS256` — unsigned tokens rejected |
-<<<<<<< HEAD
 
 ---
 
@@ -355,19 +290,6 @@ The secure endpoint uses `jwt.verify(token, secret, { algorithms: ['HS256'] })` 
 | `/login` | POST | Authenticate and receive JWT |
 | `/api/vulnerable-admin` | GET | Path traversal vulnerability — no sanitization on `kid` |
 | `/api/secure-admin` | GET | Uses `path.basename()` to neutralize path traversal sequences |
-=======
-| `/api/me` | GET | Returns current user info from token |
-| `/logout` | POST | Clears the token cookie |
-
-### Why the Secure Endpoint Works
-
-The secure endpoint uses a strict algorithm whitelist:
-```js
-jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] })
-```
-- Tokens with `alg: "none"` are automatically rejected
-- Only tokens signed with HS256 and the correct secret are accepted
->>>>>>> eb2aa1a73d0a937a559764f7cd2d99ba1491b0f5
 
 ---
 
@@ -457,13 +379,10 @@ Hidden public keys are **not** a security mitigation against algorithm confusion
 |---|---|---|
 | Unverified Signature | Using `jwt.decode()` instead of `jwt.verify()` | Always use `jwt.verify()` with a secret key |
 | alg:none Attack | Accepting unsigned tokens | Explicitly whitelist allowed algorithms (e.g., `['HS256']`) |
-<<<<<<< HEAD
 | Weak Signing Key | Using a guessable/common secret | Use a cryptographically strong, random key (256+ bits) |
 | JWK Header Injection | Trusting `jwk` parameter from JWT header | Never verify tokens using keys embedded in the token itself |
 | JKU Header Injection | Trusting `jku` URL blindly | Validate `jku` URLs against a strict whitelist of internal/trusted domains |
 | kid Path Traversal | Building filesystem paths with `kid` directly | Sanitize the `kid` claim (e.g. `path.basename()`) and explicitly verify file bounds |
-=======
->>>>>>> eb2aa1a73d0a937a559764f7cd2d99ba1491b0f5
 | Algorithm Confusion | Trusting the `alg` header and reusing asymmetric keys for symmetric verification | Enforce allowed algorithms; do not use PEM keys for HMAC secrets |
 
 ### General JWT Security Best Practices

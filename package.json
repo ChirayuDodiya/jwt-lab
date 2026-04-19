@@ -5,17 +5,13 @@
   "scripts": {
     "lab1": "node lab1-unverified-signature/server.js",
     "lab2": "node lab2-alg-none/server.js",
-<<<<<<< HEAD
     "lab3": "node lab3-weak-signing-key/server.js",
     "lab4": "node lab4-jwk-header-injection/server.js",
     "lab5": "node lab5-jku-header-injection/server.js",
     "lab6": "node lab6-kid-path-traversal/server.js",
-    "all": "concurrently \"npm run lab1\" \"npm run lab2\" \"npm run lab3\" \"npm run lab4\" \"npm run lab5\" \"npm run lab6\""
-=======
     "lab7": "node lab7-algorithm-confusion/server.js",
     "lab8": "node lab8-alg-confusion-no-key/server.js",
-    "all": "concurrently \"npm run lab1\" \"npm run lab2\" \"npm run lab7\" \"npm run lab8\""
->>>>>>> eb2aa1a73d0a937a559764f7cd2d99ba1491b0f5
+    "all": "concurrently \"npm run lab1\" \"npm run lab2\" \"npm run lab3\" \"npm run lab4\" \"npm run lab5\" \"npm run lab6\" \"npm run lab7\" \"npm run lab8\""
   },
   "dependencies": {
     "express": "^4.18.2",
