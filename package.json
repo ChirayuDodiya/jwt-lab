@@ -1,0 +1,17 @@
+{
+  "name": "jwt-vulnerability-labs",
+  "version": "1.0.0",
+  "description": "JWT Vulnerability Labs for Cryptography - Similar to PortSwigger JWT Labs",
+  "scripts": {
+    "lab1": "node lab1-unverified-signature/server.js",
+    "lab2": "node lab2-alg-none/server.js",
+    "all": "concurrently \"npm run lab1\" \"npm run lab2\""
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "dotenv": "^16.3.1",
+    "cookie-parser": "^1.4.6",
+    "concurrently": "^8.2.2"
+  }
+}
